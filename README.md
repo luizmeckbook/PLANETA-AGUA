@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -40,6 +40,7 @@
         
         .finance-box { display: flex; gap: 10px; margin-bottom: 15px; }
         .fin-card { flex: 1; padding: 10px; border-radius: 8px; color: white; text-align: center; }
+        .total-info { font-size: 14px; color: #666; margin-bottom: 5px; text-align: right; }
     </style>
 </head>
 <body>
@@ -92,17 +93,29 @@
     <div class="container">
         <div id="itensCarrinho"></div>
         <div class="card" id="cardCheckout" style="display:none">
-            <h3>Finalizar Pedido</h3>
-            <textarea id="endEntrega" placeholder="Endereço Completo (Rua, Número, Bairro)"></textarea>
+            <h3>Como deseja receber?</h3>
+            <select id="tipoEntrega" onchange="renderizarCarrinho()">
+                <option value="retirada">Retirar na Loja (Grátis)</option>
+                <option value="entrega">Receber em Casa (+ R$ 7,00)</option>
+            </select>
+
+            <div id="boxEndereco" style="display:none">
+                <textarea id="endEntrega" placeholder="Endereço Completo (Rua, Nº, Bairro)"></textarea>
+            </div>
+
             <select id="formaPagto">
-                <option value="">Selecione o Pagamento</option>
+                <option value="">Forma de Pagamento</option>
                 <option value="Pix">Pix</option>
                 <option value="Cartão">Cartão (na entrega)</option>
                 <option value="Dinheiro">Dinheiro</option>
             </select>
-            <h2 id="totalCarrinho" style="text-align:right">Total: R$ 0,00</h2>
+
+            <div class="total-info" id="txtSubtotal">Subtotal: R$ 0,00</div>
+            <div class="total-info" id="txtTaxa">Entrega: R$ 0,00</div>
+            <h2 id="totalCarrinho" style="text-align:right; margin-top:0;">Total: R$ 0,00</h2>
+            
             <button class="btn-whatsapp" onclick="finalizarPedido(true)">🚀 Enviar via WhatsApp</button>
-            <button class="btn-main" onclick="finalizarPedido(false)" style="margin-top:10px; background:#444">Apenas salvar no Chat</button>
+            <button class="btn-main" onclick="finalizarPedido(false)" style="margin-top:10px; background:#444">Salvar apenas no Chat</button>
         </div>
     </div>
 </div>
@@ -115,7 +128,7 @@
     <div class="container">
         <div class="finance-box">
             <div class="fin-card" style="background:#2ecc71">
-                <small>Faturamento (Bruto)</small><br>
+                <small>Faturamento (Venda)</small><br>
                 <strong id="finBruto">R$ 0,00</strong>
             </div>
             <div class="fin-card" style="background:#3498db">
@@ -123,33 +136,29 @@
                 <strong id="finLiquido">R$ 0,00</strong>
             </div>
         </div>
-
         <div class="card">
             <h3>🎨 Configurações</h3>
             <input id="cfgNome" placeholder="Nome do Mercado">
-            <input id="cfgWhats" placeholder="WhatsApp (ex: 5521999999999)">
+            <input id="cfgWhats" placeholder="WhatsApp (5521999999999)">
             <input type="color" id="cfgCor">
-            <button onclick="salvarConfigSemRefresh()" class="btn-main">Salvar Alterações</button>
+            <button onclick="salvarConfigSemRefresh()" class="btn-main">Salvar</button>
         </div>
-
         <div class="card">
-            <h3>📦 Cadastrar Produto</h3>
-            <input id="pNome" placeholder="Nome do Produto">
-            <input id="pCusto" type="number" step="0.01" placeholder="Valor Líquido (Preço de Custo)">
-            <input id="pVenda" type="number" step="0.01" placeholder="Valor Bruto (Preço de Venda)">
+            <h3>📦 Novo Produto</h3>
+            <input id="pNome" placeholder="Nome">
+            <input id="pCusto" type="number" step="0.01" placeholder="Custo (Líquido)">
+            <input id="pVenda" type="number" step="0.01" placeholder="Venda (Bruto)">
             <select id="pCat">
                 <option>Açougue</option><option>Bebida</option><option>Limpeza</option><option>Padaria</option><option>Mercearia</option>
             </select>
-            <button onclick="addProduto()" class="btn-main" style="background:var(--admin-bg)">Adicionar Produto</button>
+            <button onclick="addProduto()" class="btn-main" style="background:var(--admin-bg)">Cadastrar</button>
         </div>
-
         <div class="card">
-            <h3>💬 Pedidos e Mensagens</h3>
+            <h3>💬 Pedidos/Chat</h3>
             <div id="lista_chats_admin"></div>
         </div>
-
         <div class="card">
-            <h3>👥 Usuários Cadastrados</h3>
+            <h3>👥 Usuários</h3>
             <div id="lista_usuarios_admin"></div>
         </div>
     </div>
@@ -176,6 +185,7 @@ let produtos = JSON.parse(localStorage.getItem("m_prod")) || [];
 let config = JSON.parse(localStorage.getItem("m_cfg")) || { nome: "Medela Supermercado", cor: "#e53935", whats: "" };
 let mensagens = JSON.parse(localStorage.getItem("m_chat")) || {};
 let carrinho = [];
+let taxaEntrega = 7.00;
 let sessaoAtiva = ""; let clienteNoChat = ""; let modoAdminChat = false;
 
 function aplicarEstilos() {
@@ -201,14 +211,14 @@ function entrar() {
     let senha = document.getElementById("lSenha").value;
     if(cpf === 'admin' && senha === 'admin123') { sessaoAtiva = "admin"; ir('admin'); return; }
     if(usuarios[cpf] && usuarios[cpf].senha === senha) { sessaoAtiva = cpf; ir('home'); }
-    else { alert("Login incorreto!"); }
+    else { alert("Dados incorretos!"); }
 }
 
 function registrar() {
     let n = document.getElementById("cNome").value;
     let c = document.getElementById("cCpf").value;
     let s = document.getElementById("cSenha").value;
-    if(!n || !c || !s) return alert("Preencha todos os campos!");
+    if(!n || !c || !s) return alert("Preencha tudo");
     usuarios[c] = { nome: n, senha: s };
     localStorage.setItem("m_users", JSON.stringify(usuarios));
     ir('login');
@@ -228,13 +238,15 @@ function removerDoCarrinho(idItem) {
 
 function renderizarCarrinho() {
     let box = document.getElementById("itensCarrinho");
-    let total = 0;
+    let subtotal = 0;
+    let tipo = document.getElementById("tipoEntrega").value;
+    
     if(carrinho.length === 0) {
-        box.innerHTML = "<p style='text-align:center'>Carrinho vazio.</p>";
+        box.innerHTML = "<p style='text-align:center'>Vazio.</p>";
         document.getElementById("cardCheckout").style.display = "none";
     } else {
         box.innerHTML = carrinho.map((item) => {
-            total += item.preco;
+            subtotal += item.preco;
             return `<div class="card" style="display:flex; justify-content:space-between; align-items:center">
                 <div><b>${item.nome}</b><br>R$ ${item.preco.toFixed(2)}</div>
                 <button class="btn-remove" onclick="removerDoCarrinho(${item.id})">✕</button>
@@ -242,26 +254,38 @@ function renderizarCarrinho() {
         }).join('');
         document.getElementById("cardCheckout").style.display = "block";
     }
-    document.getElementById("totalCarrinho").innerText = "Total: R$ " + total.toFixed(2);
+
+    let taxa = tipo === "entrega" ? taxaEntrega : 0;
+    document.getElementById("boxEndereco").style.display = tipo === "entrega" ? "block" : "none";
+    document.getElementById("txtSubtotal").innerText = "Subtotal: R$ " + subtotal.toFixed(2);
+    document.getElementById("txtTaxa").innerText = "Entrega: R$ " + taxa.toFixed(2);
+    document.getElementById("totalCarrinho").innerText = "Total: R$ " + (subtotal + taxa).toFixed(2);
 }
 
 function finalizarPedido(viaWhats) {
+    let tipo = document.getElementById("tipoEntrega").value;
     let endereco = document.getElementById("endEntrega").value;
     let pagamento = document.getElementById("formaPagto").value;
-    if(carrinho.length === 0) return;
-    if(!endereco || !pagamento) return alert("Endereço e Pagamento são obrigatórios!");
+    
+    if(tipo === "entrega" && !endereco) return alert("Informe o endereço!");
+    if(!pagamento) return alert("Escolha o pagamento!");
 
-    let resumo = "🛒 *NOVO PEDIDO:*\n\n";
-    let total = 0;
-    carrinho.forEach(i => { resumo += `▪️ ${i.nome}: R$ ${i.preco.toFixed(2)}\n`; total += i.preco; });
-    resumo += `\n📍 *Endereço:* ${endereco}\n💳 *Pagamento:* ${pagamento}\n💰 *TOTAL: R$ ${total.toFixed(2)}*`;
+    let subtotal = 0;
+    let resumo = `🛒 *NOVO PEDIDO (${tipo.toUpperCase()})*\n\n`;
+    carrinho.forEach(i => { resumo += `▪️ ${i.nome}: R$ ${i.preco.toFixed(2)}\n`; subtotal += i.preco; });
+    
+    let taxa = tipo === "entrega" ? taxaEntrega : 0;
+    resumo += `\n📦 *Entrega:* R$ ${taxa.toFixed(2)}`;
+    resumo += `\n💰 *TOTAL: R$ ${(subtotal + taxa).toFixed(2)}*`;
+    resumo += `\n💳 *Pagamento:* ${pagamento}`;
+    if(tipo === "entrega") resumo += `\n📍 *Endereço:* ${endereco}`;
 
     if(!mensagens[sessaoAtiva]) mensagens[sessaoAtiva] = [];
     mensagens[sessaoAtiva].push({ texto: resumo, autor: 'cliente' });
     localStorage.setItem("m_chat", JSON.stringify(mensagens));
     
     if(viaWhats) {
-        if(!config.whats) return alert("Configure o WhatsApp no Admin primeiro!");
+        if(!config.whats) return alert("Falta o WhatsApp no Admin!");
         window.open(`https://api.whatsapp.com/send?phone=${config.whats}&text=${encodeURIComponent(resumo)}`, '_blank');
     }
 
@@ -269,44 +293,29 @@ function finalizarPedido(viaWhats) {
     alert("Pedido enviado!"); ir('chat');
 }
 
-/* ADMIN & FINANCEIRO */
+/* ADMIN */
 function renderizarAdmin() {
-    // Lista de Usuários
     document.getElementById("lista_usuarios_admin").innerHTML = Object.keys(usuarios).map(c => `
         <div style="border-bottom:1px solid #eee; padding:10px 0"><b>${usuarios[c].nome}</b> | Senha: <b style="color:red">${usuarios[c].senha}</b></div>
-    `).join('') || "Sem usuários.";
-
-    // Lista de Pedidos
+    `).join('') || "Vazio.";
     document.getElementById("lista_chats_admin").innerHTML = Object.keys(mensagens).map(c => `
-        <button onclick="abrirChatAdmin('${c}')" style="background:#eee; color:#333; margin-bottom:5px; text-align:left">🛒 Ver Pedido/Chat: ${usuarios[c]?.nome || c}</button>
-    `).join('') || "Sem mensagens.";
+        <button onclick="abrirChatAdmin('${c}')" style="background:#eee; color:#333; margin-bottom:5px; text-align:left">🛒 Pedido: ${usuarios[c]?.nome || c}</button>
+    `).join('') || "Vazio.";
 
-    // Cálculo Financeiro
-    let totalBruto = 0;
-    let totalCusto = 0;
-    produtos.forEach(p => {
-        totalBruto += p.preco; 
-        totalCusto += (p.custo || 0);
-    });
-    document.getElementById("finBruto").innerText = "R$ " + totalBruto.toFixed(2);
-    document.getElementById("finLiquido").innerText = "R$ " + (totalBruto - totalCusto).toFixed(2);
+    let bruto = 0, custo = 0;
+    produtos.forEach(p => { bruto += p.preco; custo += (p.custo || 0); });
+    document.getElementById("finBruto").innerText = "R$ " + bruto.toFixed(2);
+    document.getElementById("finLiquido").innerText = "R$ " + (bruto - custo).toFixed(2);
 }
 
 function addProduto() {
     let n = document.getElementById("pNome").value;
-    let custo = parseFloat(document.getElementById("pCusto").value);
-    let venda = parseFloat(document.getElementById("pVenda").value);
-    let c = document.getElementById("pCat").value;
-
-    if(!n || isNaN(custo) || isNaN(venda)) return alert("Preencha os valores corretamente!");
-
-    produtos.push({nome: n, preco: venda, custo: custo, cat: c});
+    let cus = parseFloat(document.getElementById("pCusto").value);
+    let ven = parseFloat(document.getElementById("pVenda").value);
+    let cat = document.getElementById("pCat").value;
+    if(!n || isNaN(cus) || isNaN(ven)) return alert("Valores inválidos!");
+    produtos.push({nome: n, preco: ven, custo: cus, cat: cat});
     localStorage.setItem("m_prod", JSON.stringify(produtos));
-    
-    alert("Produto Cadastrado!");
-    document.getElementById("pNome").value = "";
-    document.getElementById("pCusto").value = "";
-    document.getElementById("pVenda").value = "";
     renderizarAdmin();
 }
 
@@ -315,16 +324,12 @@ function salvarConfigSemRefresh() {
     config.cor = document.getElementById("cfgCor").value;
     config.whats = document.getElementById("cfgWhats").value;
     localStorage.setItem("m_cfg", JSON.stringify(config));
-    aplicarEstilos();
-    alert("Configurações atualizadas!");
+    aplicarEstilos(); alert("Salvo!");
 }
 
-function voltarParaLogin() {
-    sessaoAtiva = ""; carrinho = []; document.getElementById("cartCount").innerText = "0";
-    ir('login');
-}
+function voltarParaLogin() { sessaoAtiva = ""; ir('login'); }
 
-/* LOJA CLIENTE */
+/* LOJA */
 function renderizarLoja() {
     document.getElementById("welcome").innerText = "Olá, " + (usuarios[sessaoAtiva]?.nome || "Cliente");
     const cats = ["Todos", "Açougue", "Bebida", "Limpeza", "Padaria", "Mercearia"];
@@ -341,33 +346,31 @@ function renderizarFiltrado(cat) {
         </div>`).join('') || "Vazio.";
 }
 
-/* CHAT FUNÇÕES */
+/* CHAT */
 function abrirSuporteVisitante() {
     sessaoAtiva = "visitante_" + Math.floor(Math.random()*999);
     clienteNoChat = sessaoAtiva; modoAdminChat = false;
-    document.getElementById("chatTitulo").innerText = "Suporte";
-    ir('chat');
+    document.getElementById("chatTitulo").innerText = "Suporte"; ir('chat');
 }
 
 function abrirChatAdmin(cpf) {
     clienteNoChat = cpf; modoAdminChat = true;
-    document.getElementById("chatTitulo").innerText = "Atendimento: " + (usuarios[cpf]?.nome || cpf);
-    ir('chat');
+    document.getElementById("chatTitulo").innerText = "Cliente: " + (usuarios[cpf]?.nome || cpf); ir('chat');
 }
 
 function enviarMensagem() {
     let input = document.getElementById("msg_input");
     if(!input.value) return;
-    let idChat = (modoAdminChat) ? clienteNoChat : sessaoAtiva;
-    if(!mensagens[idChat]) mensagens[idChat] = [];
-    mensagens[idChat].push({ texto: input.value, autor: (modoAdminChat) ? 'admin' : 'cliente' });
+    let id = modoAdminChat ? clienteNoChat : sessaoAtiva;
+    if(!mensagens[id]) mensagens[id] = [];
+    mensagens[id].push({ texto: input.value, autor: modoAdminChat ? 'admin' : 'cliente' });
     localStorage.setItem("m_chat", JSON.stringify(mensagens));
     input.value = ""; renderizarMensagens();
 }
 
 function renderizarMensagens() {
-    let idChat = (modoAdminChat) ? clienteNoChat : sessaoAtiva;
-    let msgs = mensagens[idChat] || [];
+    let id = modoAdminChat ? clienteNoChat : sessaoAtiva;
+    let msgs = mensagens[id] || [];
     document.getElementById("box_msgs").innerHTML = msgs.map(m => `
         <div class="msg ${m.autor === (modoAdminChat ? 'admin' : 'cliente') ? 'sent' : 'received'}">${m.texto.replace(/\n/g, '<br>')}</div>
     `).join('');
