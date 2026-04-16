@@ -1,4 +1,5 @@
-
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,10 +81,10 @@
                 </div>
             </div>
             
-            <div id="tab-chat" class="tab-content space-y-6 h-full flex flex-col">
+            <div id="tab-chat" class="tab-content space-y-6">
                 <h2 class="text-2xl font-black text-slate-800 uppercase">Suporte ao Cliente</h2>
-                <div id="admin-messages" class="flex-1 bg-white rounded-3xl shadow-inner p-6 overflow-y-auto flex flex-col gap-4 chat-scroll min-h-[400px]"></div>
-                <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm">
+                <div id="admin-messages" class="h-[400px] bg-white rounded-3xl shadow-inner p-6 overflow-y-auto flex flex-col gap-4 chat-scroll border"></div>
+                <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm border">
                     <input type="text" id="admin-msg-input" class="flex-1 p-4 outline-none font-medium" placeholder="Digite sua resposta...">
                     <button onclick="sendChatMessage('admin')" class="bg-cyan-600 text-white px-8 rounded-xl font-bold uppercase text-xs">Responder</button>
                 </div>
@@ -97,6 +98,7 @@
                 </div>
                 <div class="bg-white rounded-3xl shadow-sm overflow-hidden"><table class="w-full text-left"><tbody id="osTableBody" class="divide-y"></tbody></table></div>
             </div>
+
             <div id="tab-estoque" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-3xl shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
                     <input type="text" id="p-nome" placeholder="Produto" class="p-4 bg-slate-50 rounded-xl border-none ring-1 ring-slate-200">
@@ -120,46 +122,31 @@
             </header>
             <main class="p-8"><div id="loja-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div></main>
 
-            <button onclick="toggleClientChat()" class="fixed bottom-8 left-8 bg-cyan-600 text-white w-16 h-16 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 active:scale-95 transition-all z-[490]">
-                <i class="fas fa-headset"></i>
-            </button>
-
+            <button onclick="toggleClientChat()" class="fixed bottom-8 left-8 bg-cyan-600 text-white w-16 h-16 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 z-[490]"><i class="fas fa-headset"></i></button>
             <div id="client-chat-ui" class="chat-panel chat-hidden fixed bottom-28 left-8 w-80 h-96 bg-white rounded-3xl shadow-2xl z-[490] flex flex-col overflow-hidden border">
-                <div class="bg-cyan-600 p-4 text-white font-bold flex justify-between items-center">
-                    <span>Suporte Online</span>
-                    <button onclick="toggleClientChat()"><i class="fas fa-times"></i></button>
-                </div>
+                <div class="bg-cyan-600 p-4 text-white font-bold flex justify-between items-center"><span>Suporte Online</span><button onclick="toggleClientChat()"><i class="fas fa-times"></i></button></div>
                 <div id="client-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 chat-scroll"></div>
-                <div class="p-3 border-t flex gap-2">
-                    <input type="text" id="client-msg-input" class="flex-1 bg-slate-100 rounded-xl px-3 text-sm outline-none" placeholder="Digite aqui...">
+                <div class="p-3 border-t flex gap-2 bg-white">
+                    <input type="text" id="cliente-msg-input" class="flex-1 bg-slate-100 rounded-xl px-3 text-sm outline-none" placeholder="Digite...">
                     <button onclick="sendChatMessage('cliente')" class="bg-cyan-600 text-white w-10 h-10 rounded-xl"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
 
         <aside class="w-full md:w-96 bg-white border-l shadow-2xl h-screen flex flex-col p-8">
-            <div class="flex justify-between items-center mb-8">
-                <h2 id="txt-cart-title" class="text-2xl font-black italic">Meu Carrinho</h2>
-                <span id="cart-badge" class="bg-cyan-500 text-white text-[10px] font-black px-3 py-1 rounded-full">0</span>
-            </div>
-            
-            <div id="cart-items-list" class="flex-1 overflow-y-auto space-y-4 mb-6 pr-2"></div>
-            
+            <h2 id="txt-cart-title" class="text-2xl font-black italic mb-4">Meu Carrinho</h2>
+            <div id="cart-items-list" class="flex-1 overflow-y-auto space-y-4 mb-6 pr-2 chat-scroll"></div>
             <div class="border-t pt-6 space-y-4">
-                <div class="flex justify-between items-center font-black">
-                    <span id="txt-total-label">Total</span>
-                    <span id="cart-total" class="text-2xl text-cyan-600">R$ 0,00</span>
-                </div>
+                <div class="flex justify-between items-center font-black"><span>Total</span><span id="cart-total" class="text-2xl text-cyan-600">R$ 0,00</span></div>
                 <div class="space-y-3">
-                    <p id="txt-pay-label" class="text-[10px] font-black uppercase text-slate-400">Forma de Pagamento</p>
-                    <select id="pay-method" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 font-bold outline-none text-sm cursor-pointer hover:bg-slate-100 transition">
+                    <p class="text-[10px] font-black uppercase text-slate-400">Forma de Pagamento</p>
+                    <select id="pay-method" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 font-bold outline-none text-sm">
                         <option value="Pix">Pix / Transferência</option>
-                        <option value="Cartão de Crédito">Cartão de Crédito</option>
-                        <option value="Cartão de Débito">Cartão de Débito</option>
+                        <option value="Cartão">Cartão</option>
                         <option value="Dinheiro">Dinheiro</option>
                     </select>
                 </div>
-                <button onclick="checkoutWhatsApp()" id="btn-checkout" class="w-full bg-green-500 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-green-600 transition uppercase text-xs tracking-widest">Enviar Pedido WhatsApp</button>
+                <button onclick="checkoutWhatsApp()" class="w-full bg-green-500 text-white font-black py-5 rounded-2xl shadow-xl uppercase text-xs">Enviar WhatsApp</button>
             </div>
         </aside>
     </div>
@@ -173,14 +160,15 @@
         let carrinho = [];
 
         const languages = {
-            pt: { flag: '🇧🇷', currency: 'R$', client: "Acesso Cliente", admin: "Administração", auth: "Autenticar", dash: "Dashboard", os: "Ordens", stock: "Estoque", logout: "SAIR", dashTitle: "Visão Geral", cardOS: "O.S Ativas", cardStock: "Itens", addOS: "Criar O.S", addProd: "Salvar", buy: "Adicionar", error: "Senha Incorreta", lock: "BLOQUEIO DE SEGURANÇA", cart: "Meu Carrinho", total: "Total", pay: "Pagamento", checkout: "Finalizar WhatsApp" },
-            en: { flag: '🇺🇸', currency: '$', client: "Customer Access", admin: "Management", auth: "Authenticate", dash: "Stats", os: "Orders", stock: "Stock", logout: "LOGOUT", dashTitle: "Overview", cardOS: "Active O.S", cardStock: "Items", addOS: "Create O.S", addProd: "Save", buy: "Add to Cart", error: "Wrong Password", lock: "SECURITY LOCK", cart: "My Cart", total: "Total", pay: "Payment", checkout: "Order via WhatsApp" },
-            es: { flag: '🇪🇸', currency: '€', client: "Acceso Cliente", admin: "Administración", auth: "Autenticar", dash: "Panel", os: "Órdenes", stock: "Mercado", logout: "SALIR", dashTitle: "Resumen", cardOS: "O.S Activas", cardStock: "Items", addOS: "Crear O.S", addProd: "Guardar", buy: "Añadir", error: "Contraseña Incorrecta", lock: "BLOQUEO DE SEGURIDAD", cart: "Mi Carrito", total: "Total", pay: "Pago", checkout: "Enviar WhatsApp" }
+            pt: { flag: '🇧🇷', currency: 'R$', client: "Acesso Cliente", admin: "Administração", auth: "Autenticar", dash: "Dashboard", os: "Ordens", stock: "Estoque", logout: "SAIR", dashTitle: "Visão Geral", cardOS: "O.S Ativas", cardStock: "Itens", addOS: "Criar O.S", addProd: "Salvar", buy: "Adicionar" },
+            en: { flag: '🇺🇸', currency: '$', client: "Customer Access", admin: "Admin", auth: "Authenticate", dash: "Stats", os: "Orders", stock: "Stock", logout: "LOGOUT", dashTitle: "Overview", cardOS: "Active O.S", cardStock: "Items", addOS: "Create O.S", addProd: "Save", buy: "Add to Cart" },
+            es: { flag: '🇪🇸', currency: '€', client: "Acceso Cliente", admin: "Administración", auth: "Autenticar", dash: "Panel", os: "Órdenes", stock: "Mercado", logout: "SALIR", dashTitle: "Resumen", cardOS: "O.S Activas", cardStock: "Items", addOS: "Crear O.S", addProd: "Guardar", buy: "Añadir" }
         };
 
-        const countries = [{code:'pt', name:'Brasil', flag:'🇧🇷'}, {code:'en', name:'USA / UK', flag:'🇺🇸'}, {code:'es', name:'España', flag:'🇪🇸'}];
+        const countries = [{code:'pt', name:'Brasil', flag:'🇧🇷'}, {code:'en', name:'USA', flag:'🇺🇸'}, {code:'es', name:'España', flag:'🇪🇸'}];
 
         function toggleLangMenu() { document.getElementById('lang-menu').classList.toggle('hidden'); }
+        
         function setLanguage(c) {
             currentLang = c; localStorage.setItem('ruan_lang', c); const l = languages[c];
             document.getElementById('current-flag').innerText = l.flag;
@@ -196,16 +184,12 @@
             document.getElementById('txt-card-stock').innerText = l.cardStock;
             document.getElementById('btn-add-os').innerText = l.addOS;
             document.getElementById('btn-add-prod').innerText = l.addProd;
-            document.getElementById('txt-cart-title').innerText = l.cart;
-            document.getElementById('txt-total-label').innerText = l.total;
-            document.getElementById('txt-pay-label').innerText = l.pay;
-            document.getElementById('btn-checkout').innerText = l.checkout;
             document.getElementById('lang-menu').classList.add('hidden'); renderAll();
         }
 
         function checkLogin() {
             if(bloqueado) return;
-            if(document.getElementById('login-pass').value === SENHA_ADM) { switchView('admin'); tentativas = 0; }
+            if(document.getElementById('login-pass').value === SENHA_ADM) { switchView('admin'); }
             else { 
                 tentativas++; document.getElementById('login-error').classList.remove('hidden');
                 if(tentativas >= 3) {
@@ -215,8 +199,18 @@
             }
         }
 
-        function switchView(v) { document.querySelectorAll('.view').forEach(x => x.classList.remove('active')); document.getElementById(v + '-view').classList.add('active'); renderAll(); }
-        function switchTab(t) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); document.getElementById('nav-' + t).classList.add('active'); }
+        function switchView(v) { 
+            document.querySelectorAll('.view').forEach(x => x.classList.remove('active')); 
+            document.getElementById(v + '-view').classList.add('active'); 
+            renderAll(); 
+        }
+
+        function switchTab(t) { 
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); 
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active')); 
+            document.getElementById('tab-' + t).classList.add('active'); 
+            document.getElementById('nav-' + t).classList.add('active'); 
+        }
 
         function save() { 
             localStorage.setItem('db_os_g8', JSON.stringify(ordens)); 
@@ -228,7 +222,6 @@
         function addOS() { const c = document.getElementById('os-cliente').value; if(c) { ordens.unshift({id: Date.now(), cliente: c, aparelho: document.getElementById('os-aparelho').value}); document.getElementById('os-cliente').value=''; save(); } }
         function addProduto() { const n = document.getElementById('p-nome').value; if(n) { produtos.push({id: Date.now(), nome: n, qtd: document.getElementById('p-qtd').value, preco: parseFloat(document.getElementById('p-preco').value || 0)}); document.getElementById('p-nome').value=''; save(); } }
 
-        // Carrinho Estilo Mercado
         function addToCart(id) {
             const p = produtos.find(x => x.id === id);
             const ja = carrinho.find(c => c.id === id);
@@ -240,25 +233,30 @@
             const item = carrinho.find(c => c.id === id);
             if (item) {
                 item.cQtd += delta;
-                if (item.cQtd <= 0) {
-                    carrinho = carrinho.filter(c => c.id !== id);
-                }
+                if (item.cQtd <= 0) carrinho = carrinho.filter(c => c.id !== id);
             }
             renderAll();
         }
 
-        function removeFromCart(id) {
-            carrinho = carrinho.filter(c => c.id !== id);
-            renderAll();
-        }
-
-        // Sistema de Chat
+        function removeFromCart(id) { carrinho = carrinho.filter(c => c.id !== id); renderAll(); }
         function toggleClientChat() { document.getElementById('client-chat-ui').classList.toggle('chat-hidden'); }
 
         function sendChatMessage(sender) {
             const input = document.getElementById(sender + '-msg-input');
-            const msgText = input.value.trim();
-            if(!msgText) return;
+            if(!input.value.trim()) return;
+            chatLogs.push({ sender, text: input.value, time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
+            input.value = ''; save();
+        }
 
-            chatLogs.push({
-                sender: 
+        function renderAll() {
+            const l = languages[currentLang];
+            if(document.getElementById('dash-os')) { document.getElementById('dash-os').innerText = ordens.length; document.getElementById('dash-stock').innerText = produtos.length; }
+            
+            const osBody = document.getElementById('osTableBody');
+            if(osBody) osBody.innerHTML = ordens.map((o,i) => `<tr><td class="p-6 font-bold text-slate-800">${o.cliente}</td><td class="p-6 text-slate-500">${o.aparelho}</td><td class="p-6 text-right"><button onclick="ordens.splice(${i},1);save()" class="text-red-300"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+            
+            const prBody = document.getElementById('prodTableBody');
+            if(prBody) prBody.innerHTML = produtos.map((p,i) => `<tr><td class="p-6 font-bold">${p.nome}</td><td class="p-6 font-black text-cyan-600">${p.qtd}</td><td class="p-6 text-right font-bold">${l.currency} ${p.preco.toFixed(2)}</td><td class="p-6 text-right"><button onclick="produtos.splice(${i},1);save()" class="text-red-300"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+
+            const grid = document.getElementById('loja-grid');
+            if(grid) grid.innerHTML = produtos.map(p => `<div class="bg-white p-6 rounded-[2.5rem] shadow-sm border flex
