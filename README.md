@@ -1,5 +1,4 @@
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,8 +13,10 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .sidebar-link.active { background: #0ea5e9; color: white; }
-        #lang-menu::-webkit-scrollbar, #cart-items-list::-webkit-scrollbar { width: 4px; }
-        #lang-menu::-webkit-scrollbar-thumb, #cart-items-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        #lang-menu::-webkit-scrollbar, #cart-items-list::-webkit-scrollbar, .chat-scroll::-webkit-scrollbar { width: 4px; }
+        #lang-menu::-webkit-scrollbar-thumb, #cart-items-list::-webkit-scrollbar-thumb, .chat-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .chat-panel { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .chat-hidden { transform: translateY(120%); }
     </style>
 </head>
 <body class="bg-slate-100">
@@ -60,6 +61,7 @@
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-link w-full text-left p-4 rounded-xl flex items-center gap-4 font-bold active"><i class="fas fa-chart-pie"></i> <span id="txt-nav-dash">Dashboard</span></button>
                 <button onclick="switchTab('os')" id="nav-os" class="sidebar-link w-full text-left p-4 rounded-xl flex items-center gap-4 font-bold"><i class="fas fa-wrench"></i> <span id="txt-nav-os">Ordens</span></button>
                 <button onclick="switchTab('estoque')" id="nav-estoque" class="sidebar-link w-full text-left p-4 rounded-xl flex items-center gap-4 font-bold"><i class="fas fa-store"></i> <span id="txt-nav-stock">Mercado</span></button>
+                <button onclick="switchTab('chat')" id="nav-chat" class="sidebar-link w-full text-left p-4 rounded-xl flex items-center gap-4 font-bold"><i class="fas fa-comment-alt"></i> <span>Suporte Chat</span></button>
             </nav>
             <button onclick="location.reload()" class="p-4 text-red-400 font-black flex items-center gap-3 mt-auto hover:bg-red-500/10 rounded-xl transition"><i class="fas fa-power-off"></i> <span id="txt-logout">SAIR</span></button>
         </aside>
@@ -77,6 +79,16 @@
                     </div>
                 </div>
             </div>
+            
+            <div id="tab-chat" class="tab-content space-y-6 h-full flex flex-col">
+                <h2 class="text-2xl font-black text-slate-800 uppercase">Suporte ao Cliente</h2>
+                <div id="admin-messages" class="flex-1 bg-white rounded-3xl shadow-inner p-6 overflow-y-auto flex flex-col gap-4 chat-scroll min-h-[400px]"></div>
+                <div class="flex gap-2 bg-white p-2 rounded-2xl shadow-sm">
+                    <input type="text" id="admin-msg-input" class="flex-1 p-4 outline-none font-medium" placeholder="Digite sua resposta...">
+                    <button onclick="sendChatMessage('admin')" class="bg-cyan-600 text-white px-8 rounded-xl font-bold uppercase text-xs">Responder</button>
+                </div>
+            </div>
+
             <div id="tab-os" class="tab-content space-y-6">
                 <div class="bg-white p-6 rounded-3xl shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
                     <input type="text" id="os-cliente" placeholder="Cliente" class="p-4 bg-slate-50 rounded-xl border-none ring-1 ring-slate-200">
@@ -98,7 +110,7 @@
     </div>
 
     <div id="cliente-view" class="view flex-col md:flex-row overflow-hidden bg-slate-50">
-        <div class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <div class="flex-1 flex flex-col h-screen overflow-y-auto relative">
             <header class="bg-white p-6 shadow-sm border-b sticky top-0 z-50 flex justify-between items-center">
                 <h1 class="text-2xl font-black italic">RUAN <span class="text-cyan-500">STORE</span></h1>
                 <input type="text" id="searchBar" onkeyup="renderAll()" class="hidden md:block flex-1 max-w-md mx-6 p-4 bg-slate-50 rounded-2xl outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-cyan-500" placeholder="Buscar no mercado...">
@@ -107,6 +119,22 @@
                 </div>
             </header>
             <main class="p-8"><div id="loja-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div></main>
+
+            <button onclick="toggleClientChat()" class="fixed bottom-8 left-8 bg-cyan-600 text-white w-16 h-16 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 active:scale-95 transition-all z-[490]">
+                <i class="fas fa-headset"></i>
+            </button>
+
+            <div id="client-chat-ui" class="chat-panel chat-hidden fixed bottom-28 left-8 w-80 h-96 bg-white rounded-3xl shadow-2xl z-[490] flex flex-col overflow-hidden border">
+                <div class="bg-cyan-600 p-4 text-white font-bold flex justify-between items-center">
+                    <span>Suporte Online</span>
+                    <button onclick="toggleClientChat()"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="client-messages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 chat-scroll"></div>
+                <div class="p-3 border-t flex gap-2">
+                    <input type="text" id="client-msg-input" class="flex-1 bg-slate-100 rounded-xl px-3 text-sm outline-none" placeholder="Digite aqui...">
+                    <button onclick="sendChatMessage('cliente')" class="bg-cyan-600 text-white w-10 h-10 rounded-xl"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
         </div>
 
         <aside class="w-full md:w-96 bg-white border-l shadow-2xl h-screen flex flex-col p-8">
@@ -114,7 +142,9 @@
                 <h2 id="txt-cart-title" class="text-2xl font-black italic">Meu Carrinho</h2>
                 <span id="cart-badge" class="bg-cyan-500 text-white text-[10px] font-black px-3 py-1 rounded-full">0</span>
             </div>
-            <div id="cart-items-list" class="flex-1 overflow-y-auto space-y-4 mb-6"></div>
+            
+            <div id="cart-items-list" class="flex-1 overflow-y-auto space-y-4 mb-6 pr-2"></div>
+            
             <div class="border-t pt-6 space-y-4">
                 <div class="flex justify-between items-center font-black">
                     <span id="txt-total-label">Total</span>
@@ -122,9 +152,10 @@
                 </div>
                 <div class="space-y-3">
                     <p id="txt-pay-label" class="text-[10px] font-black uppercase text-slate-400">Forma de Pagamento</p>
-                    <select id="pay-method" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 font-bold outline-none text-sm">
+                    <select id="pay-method" class="w-full p-4 bg-slate-50 rounded-2xl border-none ring-1 ring-slate-100 font-bold outline-none text-sm cursor-pointer hover:bg-slate-100 transition">
                         <option value="Pix">Pix / Transferência</option>
-                        <option value="Cartão">Cartão de Crédito</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Cartão de Débito">Cartão de Débito</option>
                         <option value="Dinheiro">Dinheiro</option>
                     </select>
                 </div>
@@ -138,6 +169,7 @@
         let tentativas = 0, bloqueado = false, currentLang = localStorage.getItem('ruan_lang') || 'pt';
         let ordens = JSON.parse(localStorage.getItem('db_os_g8')) || [];
         let produtos = JSON.parse(localStorage.getItem('db_pr_g8')) || [];
+        let chatLogs = JSON.parse(localStorage.getItem('db_chat_g8')) || [];
         let carrinho = [];
 
         const languages = {
@@ -186,10 +218,17 @@
         function switchView(v) { document.querySelectorAll('.view').forEach(x => x.classList.remove('active')); document.getElementById(v + '-view').classList.add('active'); renderAll(); }
         function switchTab(t) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active')); document.getElementById('tab-' + t).classList.add('active'); document.getElementById('nav-' + t).classList.add('active'); }
 
-        function save() { localStorage.setItem('db_os_g8', JSON.stringify(ordens)); localStorage.setItem('db_pr_g8', JSON.stringify(produtos)); renderAll(); }
+        function save() { 
+            localStorage.setItem('db_os_g8', JSON.stringify(ordens)); 
+            localStorage.setItem('db_pr_g8', JSON.stringify(produtos)); 
+            localStorage.setItem('db_chat_g8', JSON.stringify(chatLogs));
+            renderAll(); 
+        }
+
         function addOS() { const c = document.getElementById('os-cliente').value; if(c) { ordens.unshift({id: Date.now(), cliente: c, aparelho: document.getElementById('os-aparelho').value}); document.getElementById('os-cliente').value=''; save(); } }
         function addProduto() { const n = document.getElementById('p-nome').value; if(n) { produtos.push({id: Date.now(), nome: n, qtd: document.getElementById('p-qtd').value, preco: parseFloat(document.getElementById('p-preco').value || 0)}); document.getElementById('p-nome').value=''; save(); } }
 
+        // Carrinho Estilo Mercado
         function addToCart(id) {
             const p = produtos.find(x => x.id === id);
             const ja = carrinho.find(c => c.id === id);
@@ -197,42 +236,29 @@
             renderAll();
         }
 
-        function renderAll() {
-            const l = languages[currentLang];
-            if(document.getElementById('dash-os')) { document.getElementById('dash-os').innerText = ordens.length; document.getElementById('dash-stock').innerText = produtos.length; }
-            
-            const osBody = document.getElementById('osTableBody');
-            if(osBody) osBody.innerHTML = ordens.map((o,i) => `<tr><td class="p-6 font-bold text-slate-800">${o.cliente}</td><td class="p-6 text-slate-500">${o.aparelho}</td><td class="p-6 text-right"><button onclick="ordens.splice(${i},1);save()" class="text-red-300"><i class="fas fa-trash"></i></button></td></tr>`).join('');
-            
-            const prBody = document.getElementById('prodTableBody');
-            if(prBody) prBody.innerHTML = produtos.map((p,i) => `<tr><td class="p-6 font-bold">${p.nome}</td><td class="p-6 font-black text-cyan-600">${p.qtd}</td><td class="p-6 text-right font-bold">${l.currency} ${p.preco.toFixed(2)}</td></tr>`).join('');
-
-            const grid = document.getElementById('loja-grid');
-            if(grid) grid.innerHTML = produtos.map(p => `<div class="bg-white p-6 rounded-[2.5rem] shadow-sm border flex flex-col justify-between hover:shadow-xl transition"><div><h3 class="font-black text-slate-800 uppercase text-[10px] tracking-widest mb-2">${p.nome}</h3><p class="text-2xl font-black text-cyan-600 mt-2">${l.currency} ${p.preco.toFixed(2)}</p></div><button onclick="addToCart(${p.id})" class="w-full mt-6 bg-slate-900 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-tighter hover:bg-cyan-500 transition">${l.buy}</button></div>`).join('');
-
-            const cList = document.getElementById('cart-items-list');
-            if(cList) {
-                let total = 0;
-                cList.innerHTML = carrinho.map((c, i) => {
-                    total += c.preco * c.cQtd;
-                    return `<div class="bg-slate-50 p-4 rounded-2xl flex justify-between items-center"><div class="text-xs font-black"><span>${c.nome}</span><br><span class="text-cyan-600">${c.cQtd}x</span></div><button onclick="carrinho.splice(${i},1);renderAll()" class="text-red-400 font-bold">&times;</button></div>`;
-                }).join('');
-                document.getElementById('cart-total').innerText = `${l.currency} ${total.toFixed(2)}`;
-                document.getElementById('cart-badge').innerText = carrinho.length;
+        function updateCartQty(id, delta) {
+            const item = carrinho.find(c => c.id === id);
+            if (item) {
+                item.cQtd += delta;
+                if (item.cQtd <= 0) {
+                    carrinho = carrinho.filter(c => c.id !== id);
+                }
             }
+            renderAll();
         }
 
-        function checkoutWhatsApp() {
-            if(carrinho.length === 0) return alert("Adicione produtos ao carrinho primeiro!");
-            let msg = `*PEDIDO RUAN STORE*%0A%0A`, total = 0;
-            carrinho.forEach(i => { msg += `• ${i.nome} (${i.cQtd}x)%0A`; total += i.preco * i.cQtd; });
-            msg += `%0A*TOTAL:* ${languages[currentLang].currency} ${total.toFixed(2)}%0A*PAGAMENTO:* ${document.getElementById('pay-method').value}`;
-            window.open(`https://wa.me/5521999999999?text=${msg}`);
-            carrinho = []; renderAll();
+        function removeFromCart(id) {
+            carrinho = carrinho.filter(c => c.id !== id);
+            renderAll();
         }
 
-        document.getElementById('country-list').innerHTML = countries.map(c => `<button onclick="setLanguage('${c.code}')" class="w-full text-left p-3 hover:bg-slate-50 rounded-xl flex items-center gap-3"><span class="text-xl">${c.flag}</span><span class="text-xs font-bold text-slate-700">${c.name}</span></button>`).join('');
-        setLanguage(currentLang);
-    </script>
-</body>
-</html>
+        // Sistema de Chat
+        function toggleClientChat() { document.getElementById('client-chat-ui').classList.toggle('chat-hidden'); }
+
+        function sendChatMessage(sender) {
+            const input = document.getElementById(sender + '-msg-input');
+            const msgText = input.value.trim();
+            if(!msgText) return;
+
+            chatLogs.push({
+                sender: 
